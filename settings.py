@@ -26,6 +26,9 @@ class Settings:
     query_gen_prompt_path: str = os.path.join(
         os.path.dirname(__file__), "prompts", "query_gen.md"
     )
+    mitigate_prompt_path: str = os.path.join(
+        os.path.dirname(__file__), "prompts", "mitigate.md"
+    )
 
 
 settings = Settings()

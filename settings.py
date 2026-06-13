@@ -29,6 +29,13 @@ class Settings:
     mitigate_prompt_path: str = os.path.join(
         os.path.dirname(__file__), "prompts", "mitigate.md"
     )
+    raw_json_path: str = os.path.join(os.path.dirname(__file__), "data", "raw.json")
+    chroma_path: str = os.path.join(
+        os.path.dirname(__file__), "data", "chroma_db"
+    )
+    bm25_path: str = os.path.join(
+        os.path.dirname(__file__), "data", "bm25s_index"
+    )
 
 
 settings = Settings()

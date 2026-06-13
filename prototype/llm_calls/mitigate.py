@@ -18,7 +18,16 @@ def resolve_client() -> ClaudeClient | GeminiClient:
     return GeminiClient()
 
 
-def load_prompt(summary: IncidentSummary, similar_cases: list[str] | None = None) -> tuple[str, str]:
+def format_case(case: dict) -> str:
+    """Serialize a retrieved case dict to a human-readable string."""
+    return (
+        f"**UUID:** {case.get('uuid', 'N/A')}\n"
+        f"**Summary:** {case.get('summary', '')}\n"
+        f"**Mitigation:** {case.get('mitigation', '')}"
+    )
+
+
+def load_prompt(summary: IncidentSummary, similar_cases: list[dict] | None = None) -> tuple[str, str]:
     """Build the mitigation system prompt and user message.
 
     Returns (system_prompt, user_content). If similar_cases is empty or None,
@@ -28,7 +37,7 @@ def load_prompt(summary: IncidentSummary, similar_cases: list[str] | None = None
         system_prompt = f.read()
 
     cases_block = (
-        "\n---\n".join(similar_cases)
+        "\n---\n".join(format_case(c) for c in similar_cases)
         if similar_cases
         else "_No similar cases provided._"
     )

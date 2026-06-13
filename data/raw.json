@@ -1,0 +1,34 @@
+{
+  "a1b2c3d4-0001-0001-0001-000000000001": {
+    "summary": "A rogue OTA update server intercepted a firmware push targeting 1,200 VW ID.4 vehicles. The attacker used a BGP hijack to redirect update traffic to a malicious host serving a tampered image. Onboard signature verification detected the mismatch and aborted installation on all affected units. No vehicles were compromised, but the fleet was left on an outdated firmware version pending a reissued update.",
+    "mitigation": "Revoked the compromised signing certificate and reissued a new update via a dedicated out-of-band channel. BGP route filtering was hardened upstream. All 1,200 vehicles were successfully updated within 48 hours through a verified delivery path."
+  },
+  "a1b2c3d4-0002-0002-0002-000000000002": {
+    "summary": "An attacker remotely exploited a buffer overflow in the cellular modem firmware of a Jeep Cherokee TCU. After gaining initial code execution, the threat actor attempted to pivot to the CAN bus to issue brake and steering commands. The intrusion detection system flagged anomalous CAN traffic and isolated the TCU before any vehicle control commands were executed.",
+    "mitigation": "Emergency OTA patch deployed to all affected TCU firmware versions within 72 hours. CAN bus firewall rules tightened to block unexpected ECU-to-ECU command sequences. Incident escalated to NHTSA with full forensic report."
+  },
+  "a1b2c3d4-0003-0003-0003-000000000003": {
+    "summary": "A researcher demonstrated a CAN bus injection attack using a malicious OBD-II dongle plugged into a fleet vehicle during routine maintenance. The dongle replayed recorded CAN frames to spoof wheel speed sensor readings, causing the ABS module to disable itself. The attack required physical access and was detected during a post-maintenance diagnostic scan.",
+    "mitigation": "OBD-II port access was restricted to authorized diagnostic tools via cryptographic device authentication. Fleet maintenance procedures updated to require a post-service CAN bus integrity scan before vehicle release."
+  },
+  "a1b2c3d4-0004-0004-0004-000000000004": {
+    "summary": "Attackers used a relay attack to amplify the signal from a key fob inside a target's home, tricking the PKES system of a BMW 5 Series into unlocking and starting the vehicle. The entire attack took under 30 seconds and was captured on CCTV. No onboard systems raised an alert.",
+    "mitigation": "Dealer-pushed software update introduced motion-based key fob sleep mode requiring physical button press to activate. Owners advised to store keys in RFID-blocking pouches. Incident reported to law enforcement."
+  },
+  "a1b2c3d4-0005-0005-0005-000000000005": {
+    "summary": "Telematics data from a fleet of 800 commercial trucks was exfiltrated over three weeks through an exposed REST API endpoint that lacked authentication. Stolen data included GPS tracks, driver IDs, fuel consumption logs, and maintenance schedules. The breach was discovered through anomalous egress traffic flagged by the fleet operator's SIEM.",
+    "mitigation": "Exposed API endpoint was taken offline immediately and replaced with an authenticated, rate-limited endpoint using OAuth 2.0. Affected drivers notified. Data retention policies reviewed and tightened. Penetration test commissioned to audit remaining API surface."
+  },
+  "a1b2c3d4-0006-0006-0006-000000000006": {
+    "summary": "A threat actor compromised the infotainment system of a connected vehicle via a malicious media file loaded from a USB drive. Exploiting a parsing vulnerability in the media player, the attacker gained root access to the infotainment ECU and used it as a pivot point to probe the internal vehicle network. Network segmentation prevented lateral movement beyond the infotainment domain.",
+    "mitigation": "Media player patched to fix the parsing vulnerability. USB autoplay disabled by default across the fleet via OTA configuration push. Network segmentation policy reviewed and confirmed effective. Monitoring added for cross-domain traffic anomalies."
+  },
+  "a1b2c3d4-0007-0007-0007-000000000007": {
+    "summary": "A spoofed TPMS sensor broadcast false low-pressure readings for all four tires on a test vehicle, causing the dashboard warning light to activate and inducing the driver to pull over. The attack was carried out using a software-defined radio at a range of 40 meters. No safety-critical systems were affected beyond the warning indicator.",
+    "mitigation": "Firmware update introduced sensor ID whitelisting per vehicle, rejecting readings from unregistered sensor IDs. Cryptographic message authentication added to the roadmap for next-generation TPMS hardware."
+  },
+  "a1b2c3d4-0008-0008-0008-000000000008": {
+    "summary": "A V2X roadside unit broadcasting intersection movement assist messages was found to be transmitting unauthenticated spoofed collision warnings to passing vehicles. Affected vehicles with active V2X safety systems triggered emergency braking events in a controlled zone. The rogue RSU was physically installed by an unknown actor and operated for approximately 6 hours before detection.",
+    "mitigation": "Rogue RSU located and removed. V2X certificate revocation list updated to block the spoofed entity certificate. Infrastructure operators required to implement tamper-evident enclosures and regular RSU integrity checks."
+  }
+}

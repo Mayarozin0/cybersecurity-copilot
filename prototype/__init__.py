@@ -1,0 +1,1 @@
+"""Cybersecurity copilot prototype package."""

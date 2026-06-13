@@ -23,6 +23,9 @@ class Settings:
     summarize_prompt_path: str = os.path.join(
         os.path.dirname(__file__), "prompts", "summarize.md"
     )
+    query_gen_prompt_path: str = os.path.join(
+        os.path.dirname(__file__), "prompts", "query_gen.md"
+    )
 
 
 settings = Settings()

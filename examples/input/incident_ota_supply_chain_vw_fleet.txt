@@ -1,0 +1,132 @@
+CYM-2024-NOV-0847
+ 
+tampered fw package served to VW ID.4 fleet mid OTA push from rogue CDN, sig check blocked install on all affected vehicles.
+ 
+VW ID.4 Pro Performance MY2023 / MEB / ICAS1 HW-03 / MDM9628 TCU
+fleet VW-FLEET-EU-4412 1204 vehicles
+package OTA-ICAS1-TCU-2.3.1-EU
+push PUSH-20241114-4412-002 started 22:00 UTC
+ 
+ 
+checked push results, all failed or specific vehicles:
+ 
+| WVWZZZAUZMP041822 | SIG_FAIL_QUARANTINE | 185.43.112.77 | 2.2.8 |
+| WVWZZZAUZMP041955 | SIG_FAIL_QUARANTINE | 185.43.112.77 | 2.2.8 |
+| WVWZZZAUZMP042001 | SIG_FAIL_QUARANTINE | 185.43.112.77 | 2.2.8 |
+| WVWZZZAUZMP042187 | SIG_FAIL_QUARANTINE | 185.43.112.77 | 2.2.8 |
+| WVWZZZAUZMP042334 | SIG_FAIL_QUARANTINE | 185.43.112.77 | 2.2.8 |
+| WVWZZZAUZMP040112 | SUCCESS             | 51.104.22.18  | 2.2.8 |
+| WVWZZZAUZMP040244 | SUCCESS             | 51.104.22.18  | 2.2.8 |
+| WVWZZZAUZMP040388 | SUCCESS             | 51.104.22.18  | 2.2.8 |
+...
+[847 rows SIG_FAIL_QUARANTINE all from 185.43.112.77 / 224 rows SUCCESS all from 51.104.22.18]
+ 
+all the failures same rogue IP, no hw or region variation. 224 success were early in the push before the switch, served fromthe legit CDN.
+ 
+ 
+prev OTA history fleet 4412:
+ 
+| PUSH-20241101-4412-001 | OTA-ICAS1-MAPS-1.8.9-EU     | 51.104.22.18 | SUCCESS | 2024-11-01 04:44 |
+| PUSH-20241018-4412-001 | OTA-ICAS1-TCU-2.2.8-EU      | 51.104.22.18 | SUCCESS | 2024-10-18 05:12 |
+| PUSH-20240928-4412-001 | OTA-ICAS1-INFOTAIN-4.1.2-EU | 51.104.22.18 | SUCCESS | 2024-09-28 06:01 |
+| PUSH-20240911-4412-002 | OTA-ICAS1-TCU-2.2.7-EU      | 51.104.22.18 | SUCCESS | 2024-09-11 03:58 |
+| PUSH-20240830-4412-001 | OTA-ICAS1-MAPS-1.8.7-EU     | 51.104.22.18 | SUCCESS | 2024-08-30 04:22 |
+ 
+all clean all from 51.104.22.18. 185.43.112.77 first time tonight.
+ 
+ 
+other fleets same night:
+ 
+| VW-FLEET-EU-4411 | PUSH-20241114-4411-001 | 51.104.22.18 | 0          |
+| VW-FLEET-EU-4406 | PUSH-20241114-4406-001 | 51.104.22.18 | 0          |
+| VW-FLEET-EU-4412 | PUSH-20241114-4412-002 | 185.43.112.77| 847        |
+ 
+only 4412 hit.
+ 
+2024-11-14 03:10:31 UTC VSOC_OTA_MONITOR fleet VW-FLEET-EU-4411 push job PUSH-20241114-4411-001 complete 944 of 944 vehicles ok
+2024-11-14 03:13:01 UTC VSOC_OTA_MONITOR fleet VW-FLEET-EU-4407 push job PUSH-20241114-4407-003 stalled 12 vehicles no response rescheduled
+2024-11-14 03:15:31 UTC VSOC_OTA_MONITOR fleet VW-FLEET-EU-4406 push job PUSH-20241114-4406-001 started 567 vehicles package OTA-ICAS1-MAPS-1.9.4-EU
+2024-11-14 03:24:44 UTC VSOC_OTA_MONITOR fleet VW-FLEET-EU-4406 progress 201 of 567 ok
+ 
+ 
+TI lookup 185.43.112.77:
+ 
+ip: 185.43.112.77
+geo: Frankfurt DE / AS47846 SEDO GmbH / domain parking
+known malicious: NO RECORD
+first seen: 2024-11-14 03:09 UTC
+domain: cdn-delivery-eu.vw-ota-services.net reg 2024-11-12
+cert: Let's Encrypt R3 — expected DigiCert VW internal CA
+ 
+TI lookup 91.217.137.4:
+ 
+ip: 91.217.137.4
+geo: Amsterdam NL / AS60781 LeaseWeb VPS
+known malicious: NO RECORD
+first seen: 2024-11-14 02:58 UTC
+ 
+domain registered 2 days before, prepped in advance.
+ 
+ 
+KEY-7731 access log:
+ 
+| 2024-11-14 02:59 | 91.217.137.4 | GET ..TCU-2.3.1-EU/download | DENIED MFA  |
+| 2024-11-14 02:58 | 91.217.137.4 | GET ..TCU-2.3.1-EU/manifest | SUCCESS     |
+| 2024-11-03 11:22 | 10.14.33.9   | GET push-jobs/status        | SUCCESS     |
+| 2024-11-01 09:14 | 10.14.33.9   | GET ..MAPS-1.8.9-EU/manifest| SUCCESS     |
+| 2024-10-28 14:03 | 10.14.33.9   | GET push-jobs/status        | SUCCESS     |
+ 
+all legit use from 10.14.33.9 internal. tonight first time external. manifest served, included CDN URL + hash + signing authority. download blocked by MFA but manifest already out. ~10min later rogue delivery starts. how key leaked not determined, flagged to VW ops.
+ 
+2024-11-14 02:58:41 UTC OTA_DIST API auth event key OTA-API-KEY-7731 assigned vw-ota-infra-team source IP 91.217.137.4 NOT in VW corporate IP range request GET /api/v2/packages/OTA-ICAS1-TCU-2.3.1-EU/manifest
+2024-11-14 02:58:42 UTC OTA_DIST request served manifest returned including CDN delivery URL package size hash signing authority
+2024-11-14 02:59:03 UTC OTA_DIST API auth event key OTA-API-KEY-7731 IP 91.217.137.4 request GET /api/v2/packages/OTA-ICAS1-TCU-2.3.1-EU/download MFA challenge issued
+2024-11-14 02:59:03 UTC OTA_DIST MFA not completed download DENIED
+2024-11-14 03:00:14 UTC OTA_DIST push job progress 74% 891 vehicles delivered ok
+2024-11-14 03:09:00 UTC OTA_DIST no further requests from 91.217.137.4
+2024-11-14 03:22:18 UTC OTA_DIST push job progress 89% 1071 vehicles attempted 847 rejected sig fail 224 delivered ok
+ 
+ 
+vehicle logs, same pattern all sampled:
+ 
+2024-11-14 03:11:22 UTC ICAS1_OTA backend poll vw-ota-backend-eu.cariad.cloud response 200 pending update available package OTA-ICAS1-TCU-2.3.1-EU
+2024-11-14 03:11:35 UTC ICAS1_OTA OTA session initiated session id OTA-SESSION-20241114-4412-002
+2024-11-14 03:11:37 UTC MDM9628_NET signal strength RSRP -88dBm RSRQ -12dB SINR 14dB band B20 tower id DE-VOD-BN-4412 ok
+2024-11-14 03:11:38 UTC ICAS1_OTA package manifest received CDN source resolved 185.43.112.77
+2024-11-14 03:11:38 UTC ICAS1_OTA WARNING CDN IP 185.43.112.77 not in pinned CDN allowlist expected range 51.104.0.0/16 allowlist check FAIL proceeding under fallback policy allowlist advisory only not enforced fw 2.3.0
+2024-11-14 03:11:39 UTC MDM9628_NET TLS handshake 185.43.112.77 cert CN cdn-delivery-eu.vw-ota-services.net issuer Let's Encrypt R3 handshake complete
+2024-11-14 03:11:42 UTC MDM9628_NET rx 48.3MB of 48.3MB download complete
+2024-11-14 03:11:43 UTC ICAS1_OTA SIGNATURE VERIFICATION FAILED expected hash a3f9c821b4e0d75f2c18e9a0341bdf92c7e541f0983abc12d4e67f190bc32a11 received hash 7c2b491de830f1a4598bc02741ef983c12d09a7b554ef312ac78b309de12f041
+2024-11-14 03:11:43 UTC ICAS1_OTA installation ABORTED package moved to quarantine /otaquarantine/7c2b491d.bin
+2024-11-14 03:11:44 UTC ICAS1_OTA security event raised SEC_OTA_SIG_FAIL transmitting to VSOC
+2024-11-14 03:12:01 UTC ICAS1_OTA session closed reason SECURITY_ABORT retry scheduled 04:00 UTC
+2024-11-14 03:12:31 UTC ICAS1_OTA heartbeat ok session idle
+2024-11-14 03:13:01 UTC ICAS1_OTA heartbeat ok session idle
+2024-11-14 03:14:31 UTC MDM9628_NET GNSS fix acquired lat 48.1351 lon 11.5820 accuracy 4.2m
+ 
+2024-11-14 03:12:24 UTC ICAS1_OTA WARNING CDN IP 185.43.112.77 not in allowlist fallback policy applied
+2024-11-14 03:12:26 UTC MDM9628_NET rx 48.3MB complete
+2024-11-14 03:12:28 UTC ICAS1_OTA climate control pre-conditioning request received from WeConnect app user_id wc-9918823 ignored OTA in progress
+2024-11-14 03:12:32 UTC ICAS1_OTA SIGNATURE VERIFICATION FAILED expected a3f9c821b4e0d75f2c18e9a0341bdf92c7e541f0983abc12d4e67f190bc32a11 received 7c2b491de830f1a4598bc02741ef983c12d09a7b554ef312ac78b309de12f041
+2024-11-14 03:12:32 UTC ICAS1_OTA installation ABORTED quarantined
+2024-11-14 03:13:01 UTC ICAS1_OTA heartbeat ok
+2024-11-14 03:15:01 UTC MDM9628_NET periodic telemetry push to cariad.cloud odometer 18442km battery health 97% tire pressure FL 2.4bar FR 2.4bar RL 2.3bar RR 2.4bar
+ 
+2024-11-14 03:12:52 UTC ICAS1_OTA WARNING CDN IP 185.43.112.77 not in allowlist fallback applied
+2024-11-14 03:12:57 UTC MDM9628_NET rx 48.3MB complete
+2024-11-14 03:12:58 UTC ICAS1_OTA SIGNTAURE VERIFICATION FAILED expected a3f9c821b4e0d75f2c18e9a0341bdf92c7e541f0983abc12d4e67f190bc32a11 received 7c2b491de830f1a4598bc02741ef983c12d09a7b554ef312ac78b309de12f041
+2024-11-14 03:12:58 UTC ICAS1_OTA installation ABORTED quarantined
+2024-11-14 03:13:41 UTC MDM9628_NET WeConnect door lock status poll user wc-4451209 response sent doors locked
+2024-11-14 03:14:31 UTC MDM9628_NET GNSS fix lat 50.9333 lon 6.9500 accuracy 3.8m
+2024-11-14 03:15:01 UTC ICAS1_OTA heartbeat ok
+ 
+ 
+integrity registry:
+ 
+2024-11-14 03:14:19 UTC INTEGRITY_REG hash query package OTA-ICAS1-TCU-2.3.1-EU queried hash 7c2b491de830f1a4598bc02741ef983c12d09a7b554ef312ac78b309de12f041 result NO MATCH hash not registered under any package status UNAUTHORIZED
+2024-11-14 03:14:20 UTC INTEGRITY_REG alert raised correlated with VSOC_OTA_MONITOR OTA_SIG_MISMATCH_CRITICAL
+ 
+registered: a3f9c821b4e0d75f2c18e9a0341bdf92c7e541f0983abc12d4e67f190bc32a11
+delivered: 7c2b491de830f1a4598bc02741ef983c12d09a7b554ef312ac78b309de12f041
+ 
+how rogue IP got into the manifest unclear — backend tamper after manifest was pulled or CDN URL already poisoned at dist server. VW ops doing forensics.

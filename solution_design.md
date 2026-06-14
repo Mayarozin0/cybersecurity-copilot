@@ -123,3 +123,40 @@ Opus would likely produce higher quality output but consumes approximately twice
 **System prompt / user input separation.** Each call splits into a static system message and a dynamic user message. This enables Anthropic prompt caching on the static portion — cached tokens are billed at a fraction of standard input cost, with adjustable TTL.
 
 **Reasoning fields.** Each call includes a short chain-of-thought field before the main output (`summary_reasoning`, `query_reasoning`, `past_cases_analyzation`, `mitigation_reasoning`). These force the model to plan before generating, measurably improving output quality. Unlike native model reasoning (extended thinking), schema-constrained reasoning fields give explicit control over reasoning depth and scope.
+
+**Edge cases.** The summarize prompt handles noisy input (a rule to extract only incident-relevant facts, plus a few-shot example burying the attack among distractors) and incomplete input (unstated fields set to `null` rather than inferred, with a deliberately sparse example).
+
+---
+
+## Evaluation Plan
+
+Each stage fails differently, so each is evaluated differently — offline against a labeled set before release, and online against live traffic.
+
+### Offline
+
+We curate a small hand-labeled set as the source of truth: a regression gate before any prompt or model change, and the calibration set for the judge below.
+
+- **Summarize** — a judge checks each extracted field against the original notes. This faithfulness check is how we catch hallucination (an invented CVE, OEM, or safety impact).
+- **Retrieve** — **Recall@2** and **MRR** against the labeled relevant incidents. We also compare hybrid search to semantic-only and BM25-only to show it earns its complexity.
+- **Mitigate** — no single correct plan exists, so we score against a rubric (containment, long-term hardening, specificity, addresses the actual vector) plus a narrow check: it must not invent incident facts or cite irrelevant past cases. Drawing on general security knowledge is expected, not a hallucination.
+
+### The judge
+
+The judge estimates the individual criteria; the final grade is computed deterministically in code, so the same output always scores the same. It runs on a different model than the generator (to avoid a model favoring its own work) and is calibrated against human labels.
+
+### Online monitoring
+
+The model version is pinned, removing silent updates as a drift source.
+
+- **Quality / drift** — the judge runs on sampled production cases, producing accuracy snapshots over time; a downward trend signals drift. A steady drop in retrieval match-scores means incoming incidents no longer resemble the knowledge base.
+- **Latency** — tracked per stage.
+- **Schema failures** — Pydantic validation errors (malformed LLM output); near zero and alerted.
+- **Analyst feedback** — a UI hallucination flag the analyst can raise and describe, and an editable mitigation output so we can track how often and how heavily it's rewritten.
+
+### Hallucination & user value
+
+Hallucination (fabricating incident facts, not using outside knowledge) is caught at four points: the summarize judge, the mitigate judge, sampled monitoring, and the analyst flag — the last feeding back into prompt improvement. **User value** is measured by how much analysts rely on the output: mitigation acceptance rate (from edit volume), flags raised, and periodic direct feedback.
+
+### Cost
+
+A full run is roughly 6,350 input + 870 output tokens (~7,200 total across the three stages), costing about **$0.032 (~3 cents) per run** at Sonnet rates. Since each stage's system prompt and few-shot examples are static, prompt caching bills those tokens at a fraction of standard input cost, cutting the real per-run figure well below this estimate at any meaningful volume.

@@ -89,7 +89,7 @@ For known attack patterns (OTA hijacks, key relay attacks, CAN injection), store
 
 ## Tools & Stack
 
-**LLM — Claude Sonnet 4.6, via the Anthropic SDK on AWS Bedrock.** We use the Anthropic SDK's `AnthropicBedrock` client, keeping Anthropic's native interface while running on Bedrock. The key tool here is **structured output**: each call returns a validated Pydantic model (`IncidentSummary`, `MitigationPlan`) instead of free text, so downstream stages receive typed, schema-checked data. Bedrock also lets us scale without managing infrastructure — its serverless endpoint absorbs concurrent analysts and traffic spikes under AWS capacity and quotas.
+**LLM — Claude Sonnet 4.6, via the Anthropic SDK on AWS Bedrock.** We use the Anthropic SDK's `AnthropicBedrock` client, keeping Anthropic's native interface while running on Bedrock. The key tool here is **structured output**: each call returns a validated Pydantic model instead of free text. This forces the model into a consistent, predictable shape — the right fields are always present, so each stage can reliably feed the next and the final result renders cleanly for the analyst. Bedrock also lets us scale without managing infrastructure — its serverless endpoint under AWS capacity and quotas.
 
 **Embeddings — OpenAI `text-embedding-3-small`.** OpenAI's embedding models are industry-leading in quality-to-cost ratio, and `text-embedding-3-small` is well-supported natively by ChromaDB. It is chosen over `text-embedding-3-large` because the corpus is domain-homogeneous — all incidents use the same automotive cybersecurity vocabulary. The quality gap between small and large is negligible for homogeneous corpora; small is ~6x cheaper.
 
